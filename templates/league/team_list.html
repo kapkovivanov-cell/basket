@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Команды — Баскетбольная лига{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Команды</h1>
+  </div>
+  <div class="grid">
+    {% for team in teams %}
+      <a class="card card--media" href="{% url 'league:team_detail' team.pk %}">
+        <div class="avatar avatar--team">
+          {% if team.logo %}
+            <img class="avatar__img" src="{{ team.logo.url }}" alt="{{ team.name }}" />
+          {% else %}
+            <img class="avatar__img" src="{% static 'img/team-default.svg' %}" alt="Логотип по умолчанию" />
+          {% endif %}
+        </div>
+        <div class="card__body">
+          <div class="card__title">{{ team.name }}</div>
+          <div class="card__meta">
+            {% if team.city %}{{ team.city }}{% endif %}
+            {% if team.short_name %}<span class="dot">•</span>{{ team.short_name }}{% endif %}
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty">Пока нет команд.</div>
+    {% endfor %}
+  </div>
+{% endblock %}
+

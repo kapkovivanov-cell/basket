@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ player.last_name }} {{ player.first_name }} — Игрок{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div class="media-head">
+      <div class="avatar avatar--player avatar--xl">
+        {% if player.photo %}
+          <img class="avatar__img" src="{{ player.photo.url }}" alt="{{ player.last_name }} {{ player.first_name }}" />
+        {% else %}
+          <img class="avatar__img" src="{% static 'img/player-default.svg' %}" alt="Фото по умолчанию" />
+        {% endif %}
+      </div>
+      <div>
+      <div class="kicker">Игрок</div>
+      <h1>{{ player.last_name }} {{ player.first_name }}</h1>
+      <div class="muted">
+        {{ player.team.name }}
+        {% if player.number is not None %}<span class="dot">•</span>#{{ player.number }}{% endif %}
+        {% if player.position %}<span class="dot">•</span>{{ player.position }}{% endif %}
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>Профиль</h2>
+    <div class="facts">
+      <div class="fact"><div class="fact__k">Рост</div><div class="fact__v">{% if player.height_cm %}{{ player.height_cm }} см{% else %}—{% endif %}</div></div>
+      <div class="fact"><div class="fact__k">Вес</div><div class="fact__v">{% if player.weight_kg %}{{ player.weight_kg }} кг{% else %}—{% endif %}</div></div>
+      <div class="fact"><div class="fact__k">Дата рождения</div><div class="fact__v">{% if player.birth_date %}{{ player.birth_date|date:"d.m.Y" }}{% else %}—{% endif %}</div></div>
+      <div class="fact"><div class="fact__k">Статус</div><div class="fact__v">{% if player.is_active %}Активен{% else %}Не активен{% endif %}</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Статистика</h2>
+    <div class="facts">
+      <div class="fact"><div class="fact__k">Матчи</div><div class="fact__v">{{ games_count }}</div></div>
+      <div class="fact"><div class="fact__k">Очки</div><div class="fact__v">{{ totals.points }}</div></div>
+      <div class="fact"><div class="fact__k">Передачи</div><div class="fact__v">{{ totals.assists }}</div></div>
+      <div class="fact"><div class="fact__k">Подборы (всего)</div><div class="fact__v">{{ totals.rebounds_off|add:totals.rebounds_def }}</div></div>
+      <div class="fact"><div class="fact__k">Подборы (нап.)</div><div class="fact__v">{{ totals.rebounds_off }}</div></div>
+      <div class="fact"><div class="fact__k">Подборы (защ.)</div><div class="fact__v">{{ totals.rebounds_def }}</div></div>
+      <div class="fact"><div class="fact__k">Перехваты</div><div class="fact__v">{{ totals.steals }}</div></div>
+      <div class="fact"><div class="fact__k">Потери</div><div class="fact__v">{{ totals.turnovers }}</div></div>
+      <div class="fact"><div class="fact__k">Блок-шоты</div><div class="fact__v">{{ totals.blocks }}</div></div>
+      <div class="fact"><div class="fact__k">Фолы игрока</div><div class="fact__v">{{ totals.fouls }}</div></div>
+      <div class="fact"><div class="fact__k">Фолы соперника</div><div class="fact__v">{{ totals.fouls_against }}</div></div>
+      <div class="fact"><div class="fact__k">Броски (всего)</div><div class="fact__v">{{ totals.shots_made }}/{{ totals.shots_att }}</div></div>
+      <div class="fact"><div class="fact__k">2 очка</div><div class="fact__v">{{ totals.fg2_made }}/{{ totals.fg2_att }}</div></div>
+      <div class="fact"><div class="fact__k">Штрафные</div><div class="fact__v">{{ totals.ft_made }}/{{ totals.ft_att }}</div></div>
+    </div>
+
+    <div class="table">
+      <div class="table__row table__row--head">
+        <div>Матч</div>
+        <div>Команды</div>
+        <div class="right">Очки</div>
+        <div>Броски</div>
+      </div>
+      {% for s in recent_games %}
+        <a class="table__row" href="{% url 'league:game_detail' s.game.pk %}">
+          <div>{{ s.game.start_at|date:"d.m.Y" }}</div>
+          <div>{{ s.game.home_team.name }} — {{ s.game.away_team.name }}</div>
+          <div class="right">{{ s.points }}</div>
+          <div>{{ s.shots_made }}/{{ s.shots_att }}</div>
+        </a>
+      {% empty %}
+        <div class="empty">Пока нет матчей со статистикой.</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
+

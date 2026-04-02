@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Панель матчей — Баскетбольная лига{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Панель матчей</h1>
+      <div class="muted">Создание, управление и лайв‑ввод событий.</div>
+    </div>
+  </div>
+  <div class="grid">
+    <a class="card" href="{% url 'live:game_list' %}">
+      <div class="card__title">Матчи</div>
+      <div class="card__meta">Список матчей и лайв‑панели.</div>
+    </a>
+    <a class="card" href="/admin/live/gameevent/">
+      <div class="card__title">События (админ‑панель)</div>
+      <div class="card__meta">Точная правка, поиск и фильтры.</div>
+    </a>
+    <a class="card" href="/admin/live/playergamestat/">
+      <div class="card__title">Статистика игроков (админ‑панель)</div>
+      <div class="card__meta">Проверка и экспорт.</div>
+    </a>
+  </div>
+{% endblock %}
+

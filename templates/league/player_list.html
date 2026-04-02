@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Игроки — Баскетбольная лига{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Игроки</h1>
+      <div class="muted">Поиск по фамилии/имени.</div>
+    </div>
+    <form class="search" method="get" action="">
+      <input class="input" type="search" name="q" value="{{ request.GET.q }}" placeholder="Поиск игрока" />
+      <button class="btn" type="submit">Найти</button>
+    </form>
+  </div>
+
+  <div class="grid">
+    {% for p in players %}
+      <a class="card card--media" href="{% url 'league:player_detail' p.pk %}">
+        <div class="avatar avatar--player">
+          {% if p.photo %}
+            <img class="avatar__img" src="{{ p.photo.url }}" alt="{{ p.last_name }} {{ p.first_name }}" />
+          {% else %}
+            <img class="avatar__img" src="{% static 'img/player-default.svg' %}" alt="Фото по умолчанию" />
+          {% endif %}
+        </div>
+        <div class="card__body">
+          <div class="card__title">{{ p.last_name }} {{ p.first_name }}</div>
+          <div class="card__meta">
+            {{ p.team.short_name|default:p.team.name }}
+            {% if p.number is not None %}<span class="dot">•</span>#{{ p.number }}{% endif %}
+            {% if p.position %}<span class="dot">•</span>{{ p.position }}{% endif %}
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty">Пока нет игроков.</div>
+    {% endfor %}
+  </div>
+{% endblock %}
+

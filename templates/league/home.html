@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Главная — Баскетбольная лига{% endblock %}
+{% block content %}
+  <section class="hero">
+    <h1 class="hero__title">Баскетбольная лига</h1>
+    <p class="hero__text">Матчи, составы и детальная статистика игроков.</p>
+    <div class="hero__actions">
+      <a class="btn" href="{% url 'league:game_list' %}">Смотреть матчи</a>
+      <a class="btn btn--ghost" href="{% url 'league:player_list' %}">Статистика игроков</a>
+    </div>
+  </section>
+{% endblock %}
+

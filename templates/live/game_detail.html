@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load dict_tools %}
+{% block title %}Лайв: {{ game.home_team.name }} — {{ game.away_team.name }}{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div class="media-head">
+      <div>
+        <div class="kicker">Лайв</div>
+        <h1>{{ game.home_team.name }} — {{ game.away_team.name }}</h1>
+        <div class="muted">
+          {{ game.start_at|date:"d.m.Y H:i" }}
+          <span class="dot">•</span>{{ game.get_status_display }}
+        </div>
+      </div>
+      <div class="scoreboard">
+        <div class="scoreboard__teams">
+          {% with s_home=team_stats|dict_get:game.home_team_id s_away=team_stats|dict_get:game.away_team_id %}
+            <div class="scoreboard__team">
+              <div class="scoreboard__name">{{ game.home_team.short_name|default:game.home_team.name }}</div>
+              <div class="scoreboard__score">{% if s_home %}{{ s_home.points }}{% else %}0{% endif %}</div>
+            </div>
+            <div class="scoreboard__team">
+              <div class="scoreboard__name">{{ game.away_team.short_name|default:game.away_team.name }}</div>
+              <div class="scoreboard__score">{% if s_away %}{{ s_away.points }}{% else %}0{% endif %}</div>
+            </div>
+          {% endwith %}
+        </div>
+        <form method="post" class="scoreboard__clock">
+          {% csrf_token %}
+          <div class="clock-display" data-seconds="{{ clock_seconds }}" data-running="{{ game.clock_running|yesno:'1,0' }}">
+            <span class="clock-display__period">P{{ game.current_period }}</span>
+            <span class="clock-display__time" id="clock-time">00:00</span>
+          </div>
+          <div class="clock-actions">
+            {% if game.status == "scheduled" %}
+              <button class="chip" type="submit" name="action" value="start_game">Начать матч</button>
+            {% elif game.status == "live" %}
+              <button class="chip" type="submit" name="action" value="clock_start">Старт</button>
+              <button class="chip" type="submit" name="action" value="clock_stop">Пауза</button>
+              <button class="chip" type="submit" name="action" value="clock_reset">Сброс</button>
+              <button class="chip" type="submit" name="action" value="period_prev">P−</button>
+              <button class="chip" type="submit" name="action" value="period_next">P+</button>
+              <button class="chip" type="submit" name="action" value="finish_game">Завершить матч</button>
+            {% else %}
+              <span class="muted">Матч завершён.</span>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>Добавить событие</h2>
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="field__label" style="margin-bottom:4px">Быстрый выбор типа события</div>
+      <div class="quickbar">
+        {% for v, label in quick_types %}
+          <button class="chip" type="submit" name="quick_type" value="{{ v }}">{{ label }}</button>
+        {% endfor %}
+      </div>
+      {% if form.errors or event_type_error %}
+        <div class="empty empty--error">Проверьте: выбрана команда, игрок и тип события (кнопкой выше).</div>
+      {% endif %}
+      <div class="form-grid">
+        <div class="field">
+          <div class="field__label">Команда</div>
+          {{ form.team }}
+        </div>
+        <div class="field">
+          <div class="field__label">Игрок</div>
+          <select name="player" id="id_player" class="input">
+            <option value="">---------</option>
+            {% for p in players_for_game %}
+              <option value="{{ p.id }}" data-team="{{ p.team_id }}">
+                #{{ p.number|default:"—" }} {{ p.last_name }} {{ p.first_name }} ({{ p.team.short_name|default:p.team.name }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <div class="field__label">Связанный игрок</div>
+          <select name="related_player" id="id_related_player" class="input">
+            <option value="">---------</option>
+            {% for p in players_for_game %}
+              <option value="{{ p.id }}" data-team="{{ p.team_id }}">
+                #{{ p.number|default:"—" }} {{ p.last_name }} {{ p.first_name }} ({{ p.team.short_name|default:p.team.name }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <div class="field__label">Период</div>
+          {{ form.period }}
+        </div>
+        <div class="field">
+          <div class="field__label">Порядок</div>
+          {{ form.sequence }}
+        </div>
+        <div class="field field--wide">
+          <div class="field__label">Примечание</div>
+          {{ form.note }}
+        </div>
+      </div>
+      {{ form.game }}
+      <div class="form-actions">
+        <button class="btn" type="submit">Добавить</button>
+        <a class="btn btn--ghost" href="/admin/live/gameevent/?game__id__exact={{ game.id }}">Открыть события в админ‑панели</a>
+      </div>
+    </form>
+  </section>
+
+  <section class="section">
+    <h2>Счёт и командные итоги</h2>
+    <div class="table table--compact">
+      <div class="table__row table__row--head table__row--compact">
+        <div>Команда</div>
+        <div class="right">Очки</div>
+        <div class="right">Подб</div>
+        <div class="right">Асс</div>
+        <div class="right">Пер</div>
+        <div class="right">Пот</div>
+        <div class="right">Бл</div>
+        <div class="right">Фол</div>
+        <div class="right">Фол соп</div>
+        <div class="right">Броски</div>
+        <div class="right">2оч</div>
+        <div class="right">Штр</div>
+      </div>
+      {% with s=team_stats|dict_get:game.home_team_id %}
+        <div class="table__row table__row--compact">
+          <div>{{ game.home_team.name }}</div>
+          <div class="right">{% if s %}{{ s.points }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.rebounds_total }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.assists }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.steals }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.turnovers }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.blocks }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls_against }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.shots_made }}/{{ s.shots_att }} ({{ s.shots_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fg2_made }}/{{ s.fg2_att }} ({{ s.fg2_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.ft_made }}/{{ s.ft_att }} ({{ s.ft_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+        </div>
+      {% endwith %}
+      {% with s=team_stats|dict_get:game.away_team_id %}
+        <div class="table__row table__row--compact">
+          <div>{{ game.away_team.name }}</div>
+          <div class="right">{% if s %}{{ s.points }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.rebounds_total }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.assists }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.steals }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.turnovers }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.blocks }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls_against }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.shots_made }}/{{ s.shots_att }} ({{ s.shots_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fg2_made }}/{{ s.fg2_att }} ({{ s.fg2_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.ft_made }}/{{ s.ft_att }} ({{ s.ft_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+        </div>
+      {% endwith %}
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Статистика игроков</h2>
+    <div class="table table--compact">
+      <div class="table__row table__row--head table__row--compact">
+        <div>Игрок</div>
+        <div>Команда</div>
+        <div class="right">Оч</div>
+        <div class="right">Асс</div>
+        <div class="right">ПбН</div>
+        <div class="right">ПбЗ</div>
+        <div class="right">Пер</div>
+        <div class="right">Пот</div>
+        <div class="right">Бл</div>
+        <div class="right">Фол</div>
+        <div class="right">Фол соп</div>
+        <div class="right">Броски</div>
+        <div class="right">2оч</div>
+        <div class="right">Штр</div>
+      </div>
+      {% for s in player_stats %}
+        <div class="table__row table__row--compact">
+          <div>{{ s.player.last_name }} {{ s.player.first_name }}</div>
+          <div>{{ s.team.short_name|default:s.team.name }}</div>
+          <div class="right">{{ s.points }}</div>
+          <div class="right">{{ s.assists }}</div>
+          <div class="right">{{ s.rebounds_off }}</div>
+          <div class="right">{{ s.rebounds_def }}</div>
+          <div class="right">{{ s.steals }}</div>
+          <div class="right">{{ s.turnovers }}</div>
+          <div class="right">{{ s.blocks }}</div>
+          <div class="right">{{ s.fouls }}</div>
+          <div class="right">{{ s.fouls_against }}</div>
+          <div class="right">{{ s.shots_made }}/{{ s.shots_att }} ({{ s.shots_pct|floatformat:1 }}%)</div>
+          <div class="right">{{ s.fg2_made }}/{{ s.fg2_att }} ({{ s.fg2_pct|floatformat:1 }}%)</div>
+          <div class="right">{{ s.ft_made }}/{{ s.ft_att }} ({{ s.ft_pct|floatformat:1 }}%)</div>
+        </div>
+      {% empty %}
+        <div class="empty">Пока нет статистики. Добавьте события.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Последние события</h2>
+    <div class="table table--compact">
+      <div class="table__row table__row--head table__row--compact">
+        <div>П</div>
+        <div class="right">Время</div>
+        <div>Команда</div>
+        <div>Игрок</div>
+        <div>Событие</div>
+        <div>Связанный</div>
+      </div>
+      {% for e in events %}
+        <div class="table__row table__row--compact">
+          <div>{{ e.period }}</div>
+          <div class="right">{{ e.clock_seconds|seconds_to_mmss }}</div>
+          <div>{{ e.team.short_name|default:e.team.name }}</div>
+          <div>{% if e.player %}{{ e.player.last_name }} {{ e.player.first_name }}{% else %}—{% endif %}</div>
+          <div>{{ e.get_event_type_display }}</div>
+          <div>{% if e.related_player %}{{ e.related_player.last_name }} {{ e.related_player.first_name }}{% else %}—{% endif %}</div>
+        </div>
+      {% empty %}
+        <div class="empty">Пока нет событий.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <script>
+    (function(){
+      var el = document.querySelector('.clock-display');
+      if(!el) return;
+      var seconds = parseInt(el.getAttribute('data-seconds') || '0', 10);
+      var running = el.getAttribute('data-running') === '1';
+      var out = document.getElementById('clock-time');
+      function render(){
+        var m = Math.floor(seconds / 60);
+        var s = seconds % 60;
+        out.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      }
+      render();
+      if(running){
+        setInterval(function(){
+          if(seconds > 0){
+            seconds -= 1;
+            render();
+          }
+        }, 1000);
+      }
+    })();
+    (function(){
+      var teamSelect = document.getElementById('id_team');
+      var playerSelect = document.getElementById('id_player');
+      var relatedSelect = document.getElementById('id_related_player');
+      if(!teamSelect || !playerSelect || !relatedSelect) return;
+      function filter(select){
+        var teamId = teamSelect.value;
+        Array.prototype.forEach.call(select.options, function(opt){
+          if(!opt.value){
+            opt.hidden = false;
+            opt.disabled = false;
+            return;
+          }
+          var t = opt.getAttribute('data-team');
+          var show = !teamId || t === teamId;
+          opt.hidden = !show;
+          opt.disabled = !show;
+          if(!show && opt.selected){
+            select.value = '';
+          }
+        });
+      }
+      function apply(){
+        filter(playerSelect);
+        filter(relatedSelect);
+      }
+      teamSelect.addEventListener('change', apply);
+      apply();
+    })();
+  </script>
+{% endblock %}
+

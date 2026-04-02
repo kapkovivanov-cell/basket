@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Панель матчей: список{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <div class="kicker">Панель матчей</div>
+      <h1>Матчи</h1>
+      <div class="muted">Создание новых матчей и переход в лайв‑панель.</div>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>Создать матч</h2>
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field">
+          <div class="field__label">Сезон</div>
+          {{ create_form.season }}
+        </div>
+        <div class="field">
+          <div class="field__label">Хозяева</div>
+          {{ create_form.home_team }}
+        </div>
+        <div class="field">
+          <div class="field__label">Гости</div>
+          {{ create_form.away_team }}
+        </div>
+        <div class="field">
+          <div class="field__label">Дата и время</div>
+          {{ create_form.start_at }}
+        </div>
+        <div class="field field--wide">
+          <div class="field__label">Арена</div>
+          {{ create_form.venue }}
+        </div>
+      </div>
+      {% if create_form.errors %}
+        <div class="empty empty--error">Проверьте данные матча (разные команды, дата и т.д.).</div>
+      {% endif %}
+      <div class="form-actions">
+        <button class="btn" type="submit">Создать матч</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="section">
+    <h2>Существующие матчи</h2>
+    <div class="table">
+      <div class="table__row table__row--head">
+        <div>Дата</div>
+        <div>Матч</div>
+        <div>Статус</div>
+      </div>
+      {% for g in games %}
+        <a class="table__row" href="{% url 'live:game_detail' g.pk %}">
+          <div>{{ g.start_at|date:"d.m.Y H:i" }}</div>
+          <div>{{ g.home_team.name }} — {{ g.away_team.name }}</div>
+          <div>{{ g.get_status_display }}</div>
+        </a>
+      {% empty %}
+        <div class="empty">Пока нет матчей.</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
+

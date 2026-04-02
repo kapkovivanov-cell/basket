@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ team.name }} — Команда{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div class="media-head">
+      <div class="avatar avatar--team avatar--xl">
+        {% if team.logo %}
+          <img class="avatar__img" src="{{ team.logo.url }}" alt="{{ team.name }}" />
+        {% else %}
+          <img class="avatar__img" src="{% static 'img/team-default.svg' %}" alt="Логотип по умолчанию" />
+        {% endif %}
+      </div>
+      <div>
+      <div class="kicker">Команда</div>
+      <h1>{{ team.name }}</h1>
+      <div class="muted">
+        {% if team.city %}{{ team.city }}{% endif %}
+        {% if team.short_name %}<span class="dot">•</span>{{ team.short_name }}{% endif %}
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>Состав</h2>
+    <div class="table">
+      <div class="table__row table__row--head">
+        <div>Игрок</div>
+        <div class="right">Номер</div>
+        <div>Позиция</div>
+      </div>
+      {% for p in team.players.all %}
+        <a class="table__row" href="{% url 'league:player_detail' p.pk %}">
+          <div class="row-media">
+            <span class="mini-badge">{% if p.number is not None %}#{{ p.number }}{% else %}—{% endif %}</span>
+            <span>{{ p.last_name }} {{ p.first_name }}</span>
+          </div>
+          <div class="right">{% if p.number is not None %}{{ p.number }}{% else %}—{% endif %}</div>
+          <div>{{ p.position|default:"—" }}</div>
+        </a>
+      {% empty %}
+        <div class="empty">Пока нет игроков.</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
+

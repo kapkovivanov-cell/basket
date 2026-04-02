@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Матчи — Баскетбольная лига{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Матчи</h1>
+  </div>
+  <div class="grid">
+    {% for g in games %}
+      <a class="card" href="{% url 'league:game_detail' g.pk %}">
+        <div class="kicker">{{ g.start_at|date:"d.m.Y H:i" }}</div>
+        <div class="card__title" style="margin-top:6px">{{ g.home_team.name }} — {{ g.away_team.name }}</div>
+        <div class="card__meta" style="margin-top:10px">
+          {% if g.status == "live" %}
+            <span class="badge badge--live">В лайве</span>
+          {% elif g.status == "finished" %}
+            <span class="badge badge--finished">Завершён</span>
+          {% else %}
+            <span class="badge badge--scheduled">Запланирован</span>
+          {% endif %}
+          {% if g.venue %}<span class="dot">•</span>{{ g.venue }}{% endif %}
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty">Пока нет матчей.</div>
+    {% endfor %}
+  </div>
+{% endblock %}
+

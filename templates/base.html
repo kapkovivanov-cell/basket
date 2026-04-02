@@ -1,0 +1,31 @@
+<!doctype html>
+{% load static %}
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Баскетбольная лига{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'app.css' %}" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="{% url 'league:home' %}">Баскетбольная лига</a>
+        <nav class="nav">
+          <a class="nav__link" href="{% url 'league:team_list' %}">Команды</a>
+          <a class="nav__link" href="{% url 'league:player_list' %}">Игроки</a>
+          <a class="nav__link" href="{% url 'league:game_list' %}">Матчи</a>
+          <a class="nav__link" href="{% url 'league:leaders' %}">Лидеры</a>
+          {% if request.user.is_staff %}
+            <a class="nav__link" href="{% url 'live:home' %}">Панель матчей</a>
+          {% endif %}
+          <a class="nav__link nav__link--muted" href="/admin/">Админ‑панель</a>
+        </nav>
+      </div>
+    </header>
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
+

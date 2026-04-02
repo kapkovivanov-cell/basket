@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load dict_tools %}
+{% block title %}Матч — {{ game.home_team.name }} — {{ game.away_team.name }}{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <div class="kicker">Матч</div>
+      <h1>{{ game.home_team.name }} — {{ game.away_team.name }}</h1>
+      <div class="muted">
+        {{ game.start_at|date:"d.m.Y H:i" }}
+        <span class="dot">•</span>
+        {% if game.status == "live" %}
+          <span class="badge badge--live">В лайве</span>
+        {% elif game.status == "finished" %}
+          <span class="badge badge--finished">Завершён</span>
+        {% else %}
+          <span class="badge badge--scheduled">Запланирован</span>
+        {% endif %}
+        {% if game.venue %}<span class="dot">•</span>{{ game.venue }}{% endif %}
+      </div>
+    </div>
+    {% if request.user.is_staff %}
+      <div class="actions">
+        <a class="btn btn--ghost" href="{% url 'live:game_detail' game.pk %}">Админ‑панель матча</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <section class="section">
+    <h2>Статистика матча</h2>
+    <div class="table table--compact">
+      <div class="table__row table__row--head table__row--compact">
+        <div>Команда</div>
+        <div class="right">Очки</div>
+        <div class="right">Подб</div>
+        <div class="right">Асс</div>
+        <div class="right">Пер</div>
+        <div class="right">Пот</div>
+        <div class="right">Бл</div>
+        <div class="right">Фол</div>
+        <div class="right">Фол соп</div>
+        <div class="right">Броски</div>
+        <div class="right">2оч</div>
+        <div class="right">Штр</div>
+      </div>
+      {% with s=team_stats|dict_get:game.home_team_id %}
+        <div class="table__row table__row--compact">
+          <div>{{ game.home_team.name }}</div>
+          <div class="right">{% if s %}{{ s.points }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.rebounds_total }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.assists }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.steals }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.turnovers }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.blocks }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls_against }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.shots_made }}/{{ s.shots_att }} ({{ s.shots_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fg2_made }}/{{ s.fg2_att }} ({{ s.fg2_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.ft_made }}/{{ s.ft_att }} ({{ s.ft_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+        </div>
+      {% endwith %}
+      {% with s=team_stats|dict_get:game.away_team_id %}
+        <div class="table__row table__row--compact">
+          <div>{{ game.away_team.name }}</div>
+          <div class="right">{% if s %}{{ s.points }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.rebounds_total }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.assists }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.steals }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.turnovers }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.blocks }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fouls_against }}{% else %}0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.shots_made }}/{{ s.shots_att }} ({{ s.shots_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.fg2_made }}/{{ s.fg2_att }} ({{ s.fg2_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+          <div class="right">{% if s %}{{ s.ft_made }}/{{ s.ft_att }} ({{ s.ft_pct|floatformat:1 }}%) {% else %}0/0{% endif %}</div>
+        </div>
+      {% endwith %}
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Статистика игроков</h2>
+    <div class="table table--compact">
+      <div class="table__row table__row--head table__row--compact">
+        <div>Игрок</div>
+        <div>Команда</div>
+        <div class="right">Оч</div>
+        <div class="right">Асс</div>
+        <div class="right">ПбН</div>
+        <div class="right">ПбЗ</div>
+        <div class="right">Пер</div>
+        <div class="right">Пот</div>
+        <div class="right">Бл</div>
+        <div class="right">Фол</div>
+        <div class="right">Фол соп</div>
+        <div class="right">Броски</div>
+        <div class="right">2оч</div>
+        <div class="right">Штр</div>
+      </div>
+      {% for s in player_stats %}
+        <a class="table__row table__row--compact" href="{% url 'league:player_detail' s.player.pk %}">
+          <div>{{ s.player.last_name }} {{ s.player.first_name }}</div>
+          <div>{{ s.team.short_name|default:s.team.name }}</div>
+          <div class="right">{{ s.points }}</div>
+          <div class="right">{{ s.assists }}</div>
+          <div class="right">{{ s.rebounds_off }}</div>
+          <div class="right">{{ s.rebounds_def }}</div>
+          <div class="right">{{ s.steals }}</div>
+          <div class="right">{{ s.turnovers }}</div>
+          <div class="right">{{ s.blocks }}</div>
+          <div class="right">{{ s.fouls }}</div>
+          <div class="right">{{ s.fouls_against }}</div>
+          <div class="right">{{ s.shots_made }}/{{ s.shots_att }} ({{ s.shots_pct|floatformat:1 }}%)</div>
+          <div class="right">{{ s.fg2_made }}/{{ s.fg2_att }} ({{ s.fg2_pct|floatformat:1 }}%)</div>
+          <div class="right">{{ s.ft_made }}/{{ s.ft_att }} ({{ s.ft_pct|floatformat:1 }}%)</div>
+        </a>
+      {% empty %}
+        <div class="empty">Пока нет статистики. Добавьте события в лайве.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Последние события</h2>
+    <div class="table">
+      <div class="table__row table__row--head">
+        <div>Событие</div>
+        <div>Команда</div>
+        <div class="right">Период</div>
+        <div class="right">Время</div>
+        <div>Игрок</div>
+      </div>
+      {% for e in events %}
+        <div class="table__row">
+          <div>{{ e.get_event_type_display }}</div>
+          <div>{{ e.team.short_name|default:e.team.name }}</div>
+          <div class="right">{{ e.period }}</div>
+          <div class="right">{{ e.clock_seconds|seconds_to_mmss }}</div>
+          <div>{% if e.player %}{{ e.player.last_name }} {{ e.player.first_name }}{% else %}—{% endif %}</div>
+        </div>
+      {% empty %}
+        <div class="empty">Пока нет событий.</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
+

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Лидеры — Баскетбольная лига{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Лидеры</h1>
+      <div class="muted">Топ по суммарным показателям.</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="section">
+      <h2>Очки</h2>
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>Игрок</div>
+          <div>Команда</div>
+          <div class="right">Очки</div>
+          <div></div>
+        </div>
+        {% for p in top_points %}
+          <a class="table__row" href="{% url 'league:player_detail' p.pk %}">
+            <div>{{ p.last_name }} {{ p.first_name }}</div>
+            <div>{{ p.team.short_name|default:p.team.name }}</div>
+            <div class="right">{{ p.total_points|default:0 }}</div>
+            <div></div>
+          </a>
+        {% empty %}
+          <div class="empty">Нет данных.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Передачи</h2>
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>Игрок</div>
+          <div>Команда</div>
+          <div class="right">Ассисты</div>
+          <div></div>
+        </div>
+        {% for p in top_assists %}
+          <a class="table__row" href="{% url 'league:player_detail' p.pk %}">
+            <div>{{ p.last_name }} {{ p.first_name }}</div>
+            <div>{{ p.team.short_name|default:p.team.name }}</div>
+            <div class="right">{{ p.total_assists|default:0 }}</div>
+            <div></div>
+          </a>
+        {% empty %}
+          <div class="empty">Нет данных.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Подборы</h2>
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>Игрок</div>
+          <div>Команда</div>
+          <div class="right">Подборы</div>
+          <div></div>
+        </div>
+        {% for p in top_rebounds %}
+          <a class="table__row" href="{% url 'league:player_detail' p.pk %}">
+            <div>{{ p.last_name }} {{ p.first_name }}</div>
+            <div>{{ p.team.short_name|default:p.team.name }}</div>
+            <div class="right">{{ p.total_reb|default:0 }}</div>
+            <div></div>
+          </a>
+        {% empty %}
+          <div class="empty">Нет данных.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Перехваты</h2>
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>Игрок</div>
+          <div>Команда</div>
+          <div class="right">Перехваты</div>
+          <div></div>
+        </div>
+        {% for p in top_steals %}
+          <a class="table__row" href="{% url 'league:player_detail' p.pk %}">
+            <div>{{ p.last_name }} {{ p.first_name }}</div>
+            <div>{{ p.team.short_name|default:p.team.name }}</div>
+            <div class="right">{{ p.total_steals|default:0 }}</div>
+            <div></div>
+          </a>
+        {% empty %}
+          <div class="empty">Нет данных.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Блок-шоты</h2>
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>Игрок</div>
+          <div>Команда</div>
+          <div class="right">Блоки</div>
+          <div></div>
+        </div>
+        {% for p in top_blocks %}
+          <a class="table__row" href="{% url 'league:player_detail' p.pk %}">
+            <div>{{ p.last_name }} {{ p.first_name }}</div>
+            <div>{{ p.team.short_name|default:p.team.name }}</div>
+            <div class="right">{{ p.total_blocks|default:0 }}</div>
+            <div></div>
+          </a>
+        {% empty %}
+          <div class="empty">Нет данных.</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+{% endblock %}
+
